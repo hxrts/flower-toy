@@ -23,7 +23,7 @@ With the blog checked out alongside this repository, regenerate its diagram sour
   --article-data data
 ```
 
-The tracked [article measurements](data/) contain the CSV snapshot cited by the [post](https://weboftru.st/post/learning-to-be-clean/), covering training trajectories, gradients, Price accounting, route ablations, and handoff threshold checks. To regenerate only this snapshot, run `.venv/bin/python -m flower_toy --no-plots --article-data data`. The blog receives only TikZ sources, including measured values required to render its figures. Full run outputs remain in ignored `results/`.
+The tracked [article measurements](data/) contain the CSV snapshot cited by the post, covering training trajectories, gradients, Price accounting, route ablations, and handoff threshold checks. To regenerate only this snapshot, run `.venv/bin/python -m flower_toy --no-plots --article-data data`. The blog receives only TikZ sources, including measured values required to render its figures. Full run outputs remain in ignored `results/`.
 
 ## Experiments
 
