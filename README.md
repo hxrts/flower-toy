@@ -1,6 +1,6 @@
 # Flower Toy Model
 
-Synthetic experiments for *Cleanliness is Next to Godliness*, with fixed inputs and initialization and no random sampling. Three binary cues—flower, green, and texture—define eight inputs; broccoli requires green and texture. Architectures, curricula, and ancestry are controlled assumptions.
+Synthetic experiments for *Learning to Be Clean*, with fixed inputs and initialization and no random sampling. Three binary cues—flower, green, and texture—define eight inputs; broccoli requires green and texture. Architectures, curricula, and ancestry are controlled assumptions.
 
 ## Run
 

@@ -485,62 +485,71 @@ def write_handoff_diagram(out: Path, traces: list[dict]) -> None:
 
 
 def write_routing_diagram(out: Path, tables: dict[str, list[dict]]) -> None:
-    """Endpoint circuits and reader-conditioned contributions on a common scale."""
-    traces, prices = tables['learned_routing_trajectories'], tables['learned_routing_price']
+    """Applied reader pressures above, endpoint population accounting below."""
+    prices, traces = tables['learned_routing_price'], tables['learned_routing_trajectories']
     end = max(r['step'] for r in traces)
-    tex = [r'\begin{tikzpicture}[learning]',
-           r'\tikzset{reader/.style={rectangle,draw,fill=white,minimum size=6pt,inner sep=0pt,line width=.65pt}}']
-    for k, (step, x, title) in enumerate(((0, 0, 'INITIAL'), (end, 4.5, 'FINAL'))):
-        row = next(r for r in traces if r['condition']=='intact' and r['step']==step)
-        tex += [fr'\stageoval{{{x},0}}',
-                fr'\node[time] at ({x},2.7) {{{title}}};']
-        for route, index, y in (('A', 1, .5), ('B', 2, -.5)):
-            tex += [fr'\stacknode[feature]{{p{k}{route}}}{{{x}}}{{0}}{{2}}{{{index}}}',
-                    (fr'\node[anchor=east] at ({x-.22},{y}) {{{route}}};' if k == 0 else
-                     fr'\node[anchor=south] at ({x},{y+.16}) {{{route}}};')]
-        for reader, y, label in (('flower', 1.45, 'Flower'), ('broccoli', -1.45, 'Broccoli')):
-            name=f'r{k}{reader}'
-            tex += [fr'\node[reader] ({name}) at ({x+.28},{y}) {{}};',
-                    fr'\node[anchor=west] at ({x+.9},{y+.14}) {{{label}}};',
-                    fr'\node[anchor=west] at ({x+.9},{y-.2}) {{A {row[reader+"_a_share"]:.0%}}};'.replace('%',r'\%'),
-                    r'\begin{pgfonlayer}{background}']
-            for route in ('A','B'):
-                tex.append(fr'\draw[flow] (p{k}{route}.center) -- ({name}.south);' if reader=='flower'
-                           else fr'\draw[flow] (p{k}{route}.center) -- ({name}.north);')
+    checkpoint = BANDS.reader_checkpoint
+    tex = [r'\begin{tikzpicture}[learning]', r'\def\learningheadinglift{.3}',
+           r'\tikzset{reader/.style={rectangle,draw,fill=white,minimum size=6pt,inner sep=0pt,line width=.65pt}}',
+           r'\stageheading{0}{PATHWAYS}{flower response}',
+           r'\stageheading{4.5}{ROUTING}{allocation logits}',
+           r'\stageheading{9}{READERS}{update 10}']
+    for k, (condition, base, title) in enumerate((('intact',0,r'LEARNED\\ROUTING'),('routing_frozen',-5.2,r'FROZEN\\ROUTING'))):
+        tex.append(fr'\node[emphasis,anchor=east,align=right] at (-1.2,{base}) {{{title}}};')
+        for x in (0,4.5,9): tex.append(fr'\stageoval{{{x},{base}}}')
+        for route,index,y in (('A',1,.5),('B',2,-.5)):
+            tex += [fr'\stacknode[feature]{{w{k}{route}}}{{0}}{{{base}}}{{2}}{{{index}}}',
+                    fr'\leftrowlabel{{{base}}}{{{y}}}{{{route}}}']
+        for reader,index,label in (('flower',1,'Flower'),('broccoli',2,'Broccoli')):
+            tex += [fr'\stacknode[reader]{{r{k}{reader}}}{{9}}{{{base}}}{{2}}{{{index}}}',
+                    fr'\rightstacklabel{{{base}}}{{2}}{{{index}}}{{{label}}}']
+        edges = []
+        for i,(reader,route) in enumerate((('flower','A'),('flower','B'),('broccoli','A'),('broccoli','B'))):
+            c=f'c{k}{i}'
+            tex += [fr'\stacknode[feature]{{{c}}}{{4.5}}{{{base}}}{{4}}{{{i+1}}}',
+                    fr'\abovenodelabel{{{c}}}{{{route}}}']
+            row=next(r for r in tables['learned_routing_pressure'] if r['condition']==condition
+                     and r['step']==checkpoint and r['reader']==reader and r['route']==route)
+            tex.append(r'\begin{pgfonlayer}{background}')
+            for part,start,target,parameter in (
+                    ('feature',f'w{k}{route}',c,'flower'),
+                    ('routing',c,f'r{k}{reader}','routing_logit')):
+                prefix=f'e{k}{i}{part}'
+                tex += [fr'\coordinate ({prefix}s) at ($({start}.center)+(.42,0)$);',
+                        fr'\coordinate ({prefix}a) at ($({start}.center)+(1.62,0)$);',
+                        fr'\coordinate ({prefix}b) at ($({target}.center)+(-1.35,0)$);']
+                band = next((b for b in tables['learned_routing_bands']
+                             if b['condition']==condition and b['source']==reader+'_'+route
+                             and b['parameter']==parameter), None)
+                if band is not None:
+                    tex.extend(_pressure_band(target+'.center', prefix+'s', prefix+'a', prefix+'b', band))
+                edges.append(fr'\draw[flow] ({start}.center) .. controls ({prefix}a) and ({prefix}b) .. ({target}.west);')
             tex.append(r'\end{pgfonlayer}')
-    tex += [r'\begin{pgfonlayer}{background}',
-            r'\draw[flow,shorten >=2.5pt] (p0A.center) -- (p1A.center);',
-            r'\draw[flow,shorten >=2.5pt] (p0B.center) -- (p1B.center);',
-            r'\end{pgfonlayer}',
-            r'\node[font=\sffamily\slshape\footnotesize] at (2.25,0) {Training};',
-            r'\node[time] at (7.8,2.7) {BY READER};',
-            r'\node[time] at (10.9,2.7) {GLOBAL};']
-
-    def bars(group, x, y):
-        row=next(r for r in prices if r['condition']=='intact' and r['step']==end
-                 and r['group']==group and r['reference']=='initial')
-        tex.append(fr'\draw[line width=.4pt] ({x-1},{y}) -- ({x+1},{y});')
-        for field, dx, color in (('selection',-.5,'black'),('transmission',.5,'black!40')):
-            value=row[field]
-            top=y+value*3.5
-            tex.append(fr'\fill[{color}] ({x+dx-.2},{y}) rectangle ({x+dx+.2},{top});')
-            anchor='south' if value>=0 else 'north'
-            offset=.08 if value>=0 else -.08
-            tex.append(fr'\node[anchor={anchor}] at ({x+dx},{top+offset}) {{{value:+.3f}}};')
-
-    bars('flower',7.8,.5)
-    bars('broccoli',7.8,-.5)
-    tex += [r'\draw[->,line width=.5pt] (8.95,.5) -- (9.7,.12);',
-            r'\draw[->,line width=.5pt] (8.95,-.5) -- (9.7,-.12);',
-            r'\node[align=center] at (10.9,1) {Equal-reader\\average};']
-    bars('all',10.9,0)
-    tex += [r'\fill[black] (1.4,-3.05) rectangle (1.65,-2.8);',
-            r'\node[anchor=west] at (1.85,-2.925) {Selection};',
-            r'\fill[black!40] (5.5,-3.05) rectangle (5.75,-2.8);',
-            r'\node[anchor=west] at (5.95,-2.925) {Variation};',
-            r'\node at (4.5,-3.6) {Change in mean flower contrast};',
-            r'\path[use as bounding box] (-3.45,-4) rectangle (12.4,3.15);',
-            r'\end{tikzpicture}']
+        tex += [r'\begin{pgfonlayer}{background}', *edges, r'\end{pgfonlayer}']
+    tex += [r'\pressurekey{0}{-8.15}{1}',
+            r'\node[anchor=west] at (.7,-8.15) {Increasing parameter};',
+            r'\pressurekey{5}{-8.15}{-1}',
+            r'\node[anchor=west] at (5.7,-8.15) {Decreasing parameter};',
+            r'\node at (4.5,-8.85) {Applied pressure at update 10};',
+            r'\draw[black!25] (-1.3,-9.5) -- (11,-9.5);',
+            r'\node[time] at (4.5,-10.15) {POPULATION CHANGE AT UPDATE 800};']
+    for group,x,label in (('flower',0,'Flower reader'),('broccoli',4.5,'Broccoli reader'),('all',9,'Equal-reader mean')):
+        row=next(r for r in prices if r['condition']=='intact' and r['reference']=='initial'
+                 and r['step']==end and r['group']==group)
+        tex.append(fr'\node at ({x},-10.6) {{{label}}};')
+        y=-12.15
+        tex.append(fr'\draw[line width=.4pt] ({x-1.2},{y}) -- ({x+1.2},{y});')
+        for field,dx,color in (('selection',-.5,'black'),('transmission',.5,'black!40')):
+            value=float(row[field]); top=y+value*3.5
+            anchor,offset=('south',.08) if value>=0 else ('north',-.08)
+            tex += [fr'\fill[{color}] ({x+dx-.2},{y}) rectangle ({x+dx+.2},{top});',
+                    fr'\node[anchor={anchor}] at ({x+dx},{top+offset}) {{{value:+.3f}}};']
+    tex += [r'\fill[black] (1.4,-14) rectangle (1.65,-13.75);',
+            r'\node[anchor=west] at (1.85,-13.875) {Selection};',
+            r'\fill[black!40] (5.5,-14) rectangle (5.75,-13.75);',
+            r'\node[anchor=west] at (5.95,-13.875) {Variation};',
+            r'\node at (4.5,-14.55) {Change in mean flower contrast, learned routing};',
+            r'\diagramframe{-15}',r'\end{tikzpicture}']
     _write_tikz(out / 'learned_routing.tex',tex)
 
 

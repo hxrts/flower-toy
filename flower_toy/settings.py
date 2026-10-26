@@ -47,6 +47,7 @@ class BandSettings:
     connection_scale: float = 48.
     specialization_scale: float = 200.
     reader_scale: float = 200.
+    routing_logit_scale: float = 3000.
 
 
 TRAINING = TrainingSettings()

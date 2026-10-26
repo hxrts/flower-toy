@@ -158,3 +158,30 @@ def index_bands(bands: list[dict]) -> dict[tuple, dict]:
     """Stable lookup for rendering already measured bands."""
     return {(r["experiment"], r["condition"], r["source"], r["parameter"], r["start_step"]): r
             for r in bands}
+
+
+def measure_routing_bands(rows: list[dict]) -> list[dict]:
+    """Applied per-reader pressures, using the same band recipe as other figures."""
+    converted = []
+    for row in rows:
+        for parameter, pressure, applied in (
+                ('flower', row['flower_pressure'], row['feature_update_applied']),
+                ('routing_logit', row['routing_logit_pressure'], row['routing_update_applied'])):
+            converted.append(dict(experiment='learned_routing', condition=row['condition'],
+                source=row['reader'] + '_' + row['route'], parameter=parameter,
+                step=row['step'], loss_gradient=-pressure, descent_pressure=pressure,
+                update_applied=applied))
+    bands = []
+    for condition in ('intact', 'routing_frozen'):
+        for reader in ('flower', 'broccoli'):
+            for route in ('A', 'B'):
+                for parameter, scale in (('flower', BANDS.reader_scale),
+                                         ('routing_logit', BANDS.routing_logit_scale)):
+                    if condition == 'routing_frozen' and parameter == 'routing_logit':
+                        continue
+                    band = gradient_band_summary(converted, experiment='learned_routing',
+                        condition=condition, source=reader+'_'+route, parameter=parameter,
+                        start=BANDS.reader_checkpoint, stop=BANDS.reader_checkpoint+1, scale=scale)
+                    band_taper_sign(band)
+                    bands.append(band)
+    return bands

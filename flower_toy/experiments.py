@@ -40,6 +40,7 @@ from .model import (
 
 from .measurements import (
     gradient_measurements,
+    measure_routing_bands,
     history_tables,
     measure_gradient_bands,
 )
@@ -352,4 +353,5 @@ def run_suite() -> SuiteResult:
     result.tables.update(measure_gradient_bands(gradients, result.tables["downstream_reader_gradients"]))
     result.summary["gradient_bands"] = result.tables["gradient_band_measurements"]
     result.summary["reader_gradient_bands"] = result.tables["reader_gradient_band_measurements"]
+    result.tables["learned_routing_bands"] = measure_routing_bands(result.tables["learned_routing_pressure"])
     return result
