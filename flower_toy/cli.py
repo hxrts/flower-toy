@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 
-from .artifacts import export_blog_assets, write_suite
+from .artifacts import export_article_data, export_blog_assets, write_suite
 from .experiments import run_suite
 
 
@@ -14,7 +14,9 @@ def main() -> None:
     parser.add_argument("--no-plots", action="store_true",
                         help="Run numerical demonstrations without matplotlib")
     parser.add_argument("--blog-assets", type=Path,
-                        help="Copy generated TikZ sources and their measurement CSVs to this site asset directory")
+                        help="Copy generated TikZ sources to this site asset directory")
+    parser.add_argument("--article-data", type=Path,
+                        help="Snapshot article measurement CSVs in this model repository")
     args = parser.parse_args()
     # The numerical suite is independent of output paths and presentation flags.
     result = run_suite()
@@ -29,4 +31,7 @@ def main() -> None:
              worlds["separate"]["step"], worlds["separate"]["flower_response"]))
     if args.blog_assets:
         export_blog_assets(args.output, args.blog_assets)
-        print(f"Updated article figure and measurements in: {args.blog_assets.resolve()}")
+        print(f"Updated article figures in: {args.blog_assets.resolve()}")
+    if args.article_data:
+        export_article_data(args.output, args.article_data)
+        print(f"Updated article measurements in: {args.article_data.resolve()}")

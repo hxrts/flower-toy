@@ -57,14 +57,21 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             out = Path(directory) / "results"
             destination = Path(directory) / "article"
+            data_destination = Path(directory) / "article-data"
             with patch.object(experiments, "run_suite", side_effect=AssertionError("Export reran suite")), \
                     patch.object(measurements, "gradient_band_summary", side_effect=AssertionError("Export remeasured bands")), \
                     patch.object(experiments, "capacity_acquisition_experiment", side_effect=AssertionError("Export reran acquisition")):
                 artifacts.write_suite(self.result, out, plots=False)
                 artifacts.export_blog_assets(out, destination)
                 artifacts.export_blog_assets(out, out)
+                artifacts.export_article_data(out, data_destination)
+                artifacts.export_article_data(out, out)
             self.assertFalse(list(out.glob("*.png")))
             self.assertEqual({p.name for p in destination.iterdir()}, set(artifacts.BLOG_ASSETS))
+            self.assertTrue(all(name.endswith(".tex") for name in artifacts.BLOG_ASSETS))
+            self.assertEqual({p.name for p in data_destination.iterdir()}, set(artifacts.ARTICLE_DATA))
+            for name in artifacts.ARTICLE_DATA:
+                self.assertEqual((out / name).read_bytes(), (data_destination / name).read_bytes())
             for name in artifacts.BLOG_ASSETS:
                 self.assertEqual((out / name).read_bytes(), (destination / name).read_bytes())
         self.assertEqual((self.result.summary, self.result.tables), original)

@@ -10,20 +10,37 @@ from .report import format_report
 from .results import SuiteResult
 
 
-# Export only article inputs; standalone reports and plots stay in the output directory.
+# Site builds consume diagram sources; measurements stay in this repository.
 BLOG_ASSETS = (
-    "learned_routing_ablations.csv", "handoff_thresholds.csv",
-    "learned_routing.tex", "learned_routing_bands.csv",
-    "learned_routing_trajectories.csv", "learned_routing_price.csv", "learned_routing_pressure.csv",
-    "acquisition_comparison.tex", "acquisition_comparison.csv",
-    "competition_gradients.tex", "price_gradient_values.tex",
-    "signed_gradients.csv", "gradient_band_measurements.csv",
-    "reader_price_accounting.csv", "matched_reader_inheritance.csv",
-    "handoff_trajectories.csv", "handoff_price.csv", "handoff_continuity.tex",
-    "matched_worlds.csv", "matched_world_sensitivity.csv",
-    "competition_reader_gradients.tex", "downstream_reader_gradients.tex",
-    "reader_gradient_band_measurements.csv", "downstream_reader_training.csv",
-    "downstream_reader_gradients.csv", "downstream_reader_endpoints.csv",
+    "acquisition_comparison.tex",
+    "competition_gradients.tex",
+    "competition_reader_gradients.tex",
+    "downstream_reader_gradients.tex",
+    "handoff_continuity.tex",
+    "learned_routing.tex",
+    "price_gradient_values.tex",
+)
+
+ARTICLE_DATA = (
+    "acquisition_comparison.csv",
+    "downstream_reader_endpoints.csv",
+    "downstream_reader_gradients.csv",
+    "downstream_reader_training.csv",
+    "gradient_band_measurements.csv",
+    "handoff_price.csv",
+    "handoff_thresholds.csv",
+    "handoff_trajectories.csv",
+    "learned_routing_ablations.csv",
+    "learned_routing_bands.csv",
+    "learned_routing_pressure.csv",
+    "learned_routing_price.csv",
+    "learned_routing_trajectories.csv",
+    "matched_reader_inheritance.csv",
+    "matched_world_sensitivity.csv",
+    "matched_worlds.csv",
+    "reader_gradient_band_measurements.csv",
+    "reader_price_accounting.csv",
+    "signed_gradients.csv",
 )
 
 
@@ -52,6 +69,15 @@ def write_suite(result: SuiteResult, out: Path, *, plots: bool = True) -> str:
 def export_blog_assets(out: Path, destination: Path) -> None:
     destination.mkdir(parents=True, exist_ok=True)
     for name in BLOG_ASSETS:
+        source, target = out / name, destination / name
+        if source.resolve() != target.resolve():
+            shutil.copyfile(source, target)
+
+
+def export_article_data(out: Path, destination: Path) -> None:
+    """Snapshot the measurements cited by the article, without figure sources."""
+    destination.mkdir(parents=True, exist_ok=True)
+    for name in ARTICLE_DATA:
         source, target = out / name, destination / name
         if source.resolve() != target.resolve():
             shutil.copyfile(source, target)

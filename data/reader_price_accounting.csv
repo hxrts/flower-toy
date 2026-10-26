@@ -1,0 +1,13 @@
+comparison,history,assignment,step,assay,population,baseline,selection,transmission,final,delta,descendant_credit
+fixed_specialized_endpoint,Retention,coherent,190,binary,all,0.5,0.25,-0.25,0.5,0.0,4.0
+fixed_specialized_endpoint,Retention,coherent,190,binary,flower,0.5,0.5,0.0,1.0,0.5,2.0
+fixed_specialized_endpoint,Retention,coherent,190,binary,broccoli,0.5,0.0,-0.5,0.0,-0.5,2.0
+fixed_specialized_endpoint,Retention,misrouted,190,binary,all,0.5,0.25,-0.25,0.5,0.0,4.0
+fixed_specialized_endpoint,Retention,misrouted,190,binary,flower,0.5,0.0,-0.5,0.0,-0.5,2.0
+fixed_specialized_endpoint,Retention,misrouted,190,binary,broccoli,0.5,0.5,0.0,1.0,0.5,2.0
+fixed_specialized_endpoint,Re-acquisition,coherent,190,binary,all,0.5,-0.25,0.25,0.5,0.0,4.0
+fixed_specialized_endpoint,Re-acquisition,coherent,190,binary,flower,0.5,-0.5,1.0,1.0,0.5,2.0
+fixed_specialized_endpoint,Re-acquisition,coherent,190,binary,broccoli,0.5,0.0,-0.5,0.0,-0.5,2.0
+fixed_specialized_endpoint,Re-acquisition,misrouted,190,binary,all,0.5,-0.25,0.25,0.5,0.0,4.0
+fixed_specialized_endpoint,Re-acquisition,misrouted,190,binary,flower,0.5,0.0,-0.5,0.0,-0.5,2.0
+fixed_specialized_endpoint,Re-acquisition,misrouted,190,binary,broccoli,0.5,-0.5,1.0,1.0,0.5,2.0

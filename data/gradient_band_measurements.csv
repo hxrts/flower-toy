@@ -1,0 +1,9 @@
+experiment,condition,source,parameter,start_step,stop_step_exclusive,mean_signed_pressure,mean_positive_pressure,mean_negative_pressure,mean_absolute_gradient,points_per_gradient_unit,full_width_pt
+competition,warm_compatible,all_readers,feature_0,0,10,0.18486467877689458,0.18486467877689458,0.0,0.18486467877689458,80.0,14.789174302151567
+competition,warm_compatible,all_readers,feature_1,0,10,0.04806537888658062,0.04806537888658062,0.0,0.04806537888658062,80.0,3.84523031092645
+competition,warm_compatible,all_readers,feature_0,10,30,0.07641647595843909,0.07641647595843909,0.0,0.07641647595843909,80.0,6.113318076675127
+competition,warm_compatible,all_readers,feature_1,10,30,0.012695243393174582,0.012695243393174582,0.0,0.012695243393174582,80.0,1.0156194714539666
+specialization,Retention,F1,flower,0,190,0.0,0.0,0.0,0.0,200.0,0.0
+specialization,Retention,F2,flower,0,190,0.0,0.0,0.0,0.0,200.0,0.0
+specialization,Retention,G,flower,0,190,-0.02923976608187135,0.0,0.02923976608187135,0.02923976608187135,200.0,5.84795321637427
+specialization,Retention,T,flower,0,190,0.0,0.0,0.0,0.0,200.0,0.0

@@ -1,0 +1,7 @@
+history,population,baseline,selection,transmission,final,delta,descendant_credit
+Retention,all,0.5,0.25,-0.25,0.5,0.0,4.0
+Retention,flower,0.5,0.5,0.0,1.0,0.5,2.0
+Retention,broccoli,0.5,0.0,-0.5,0.0,-0.5,2.0
+Mixed inheritance,all,0.5,0.25,-0.25,0.5,0.0,4.0
+Mixed inheritance,flower,0.5,0.0,0.5,1.0,0.5,2.0
+Mixed inheritance,broccoli,0.5,0.5,-1.0,0.0,-0.5,2.0
