@@ -9,6 +9,8 @@ class TrainingSettings:
     green_lr: float = .15
     specialization_steps: int = 190
     specialization_lr: float = .18
+    routing_steps: int = 800
+    routing_lr: float = .15
     reader_steps: int = 800
     reader_lr: float = .15
     competition_steps: int = 160

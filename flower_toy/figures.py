@@ -471,7 +471,8 @@ def write_handoff_diagram(out: Path, traces: list[dict]) -> None:
                  else 'Available throughout')
         tex += [fr'\node[anchor=north west] at (0,{y-.22}) {{Flower classification}};',
                 fr'\node[anchor=north east] at (9,{y-.22}) {{{label}}};']
-    tex += [r'\node[feature] (keyflower) at (0,-7) {};',
+    tex += [r'\node[align=center] at (9,-2.25) {Identical final parameters\\Endpoint selection 0, variation 0};',
+            r'\node[feature] (keyflower) at (0,-7) {};',
             r'\responsetrait{keyflower}',
             r'\node[anchor=west] at (.3,-7) {Flower-responsive};',
             r'\node[feature] at (4,-7) {};',
@@ -483,6 +484,66 @@ def write_handoff_diagram(out: Path, traces: list[dict]) -> None:
     _write_tikz(out / 'handoff_continuity.tex', tex)
 
 
+def write_routing_diagram(out: Path, tables: dict[str, list[dict]]) -> None:
+    """Endpoint circuits and reader-conditioned contributions on a common scale."""
+    traces, prices = tables['learned_routing_trajectories'], tables['learned_routing_price']
+    end = max(r['step'] for r in traces)
+    tex = [r'\begin{tikzpicture}[learning]',
+           r'\tikzset{reader/.style={rectangle,draw,fill=white,minimum size=6pt,inner sep=0pt,line width=.65pt}}']
+    for k, (step, x, title) in enumerate(((0, 0, 'INITIAL'), (end, 4.5, 'FINAL'))):
+        row = next(r for r in traces if r['condition']=='intact' and r['step']==step)
+        tex += [fr'\stageoval{{{x},0}}',
+                fr'\node[time] at ({x},2.7) {{{title}}};']
+        for route, index, y in (('A', 1, .5), ('B', 2, -.5)):
+            tex += [fr'\stacknode[feature]{{p{k}{route}}}{{{x}}}{{0}}{{2}}{{{index}}}',
+                    (fr'\node[anchor=east] at ({x-.22},{y}) {{{route}}};' if k == 0 else
+                     fr'\node[anchor=south] at ({x},{y+.16}) {{{route}}};')]
+        for reader, y, label in (('flower', 1.45, 'Flower'), ('broccoli', -1.45, 'Broccoli')):
+            name=f'r{k}{reader}'
+            tex += [fr'\node[reader] ({name}) at ({x+.28},{y}) {{}};',
+                    fr'\node[anchor=west] at ({x+.9},{y+.14}) {{{label}}};',
+                    fr'\node[anchor=west] at ({x+.9},{y-.2}) {{A {row[reader+"_a_share"]:.0%}}};'.replace('%',r'\%'),
+                    r'\begin{pgfonlayer}{background}']
+            for route in ('A','B'):
+                tex.append(fr'\draw[flow] (p{k}{route}.center) -- ({name}.south);' if reader=='flower'
+                           else fr'\draw[flow] (p{k}{route}.center) -- ({name}.north);')
+            tex.append(r'\end{pgfonlayer}')
+    tex += [r'\begin{pgfonlayer}{background}',
+            r'\draw[flow,shorten >=2.5pt] (p0A.center) -- (p1A.center);',
+            r'\draw[flow,shorten >=2.5pt] (p0B.center) -- (p1B.center);',
+            r'\end{pgfonlayer}',
+            r'\node[font=\sffamily\slshape\footnotesize] at (2.25,0) {Training};',
+            r'\node[time] at (7.8,2.7) {BY READER};',
+            r'\node[time] at (10.9,2.7) {GLOBAL};']
+
+    def bars(group, x, y):
+        row=next(r for r in prices if r['condition']=='intact' and r['step']==end
+                 and r['group']==group and r['reference']=='initial')
+        tex.append(fr'\draw[line width=.4pt] ({x-1},{y}) -- ({x+1},{y});')
+        for field, dx, color in (('selection',-.5,'black'),('transmission',.5,'black!40')):
+            value=row[field]
+            top=y+value*3.5
+            tex.append(fr'\fill[{color}] ({x+dx-.2},{y}) rectangle ({x+dx+.2},{top});')
+            anchor='south' if value>=0 else 'north'
+            offset=.08 if value>=0 else -.08
+            tex.append(fr'\node[anchor={anchor}] at ({x+dx},{top+offset}) {{{value:+.3f}}};')
+
+    bars('flower',7.8,.5)
+    bars('broccoli',7.8,-.5)
+    tex += [r'\draw[->,line width=.5pt] (8.95,.5) -- (9.7,.12);',
+            r'\draw[->,line width=.5pt] (8.95,-.5) -- (9.7,-.12);',
+            r'\node[align=center] at (10.9,1) {Equal-reader\\average};']
+    bars('all',10.9,0)
+    tex += [r'\fill[black] (1.4,-3.05) rectangle (1.65,-2.8);',
+            r'\node[anchor=west] at (1.85,-2.925) {Selection};',
+            r'\fill[black!40] (5.5,-3.05) rectangle (5.75,-2.8);',
+            r'\node[anchor=west] at (5.95,-2.925) {Variation};',
+            r'\node at (4.5,-3.6) {Change in mean flower contrast};',
+            r'\path[use as bounding box] (-3.45,-4) rectangle (12.4,3.15);',
+            r'\end{tikzpicture}']
+    _write_tikz(out / 'learned_routing.tex',tex)
+
+
 def render_suite(result: SuiteResult, out: Path, *, plots: bool = True) -> None:
     """Render stored measurements without running experiments or exporting CSVs."""
     tables = result.tables
@@ -490,6 +551,7 @@ def render_suite(result: SuiteResult, out: Path, *, plots: bool = True) -> None:
     write_reader_gradient_diagrams(out, tables["reader_gradient_band_measurements"], tables["gradient_pressure"])
     write_acquisition_tikz(out / "acquisition_comparison.tex", tables["acquisition_comparison"])
     write_handoff_diagram(out, tables["handoff_trajectories"])
+    write_routing_diagram(out, tables)
     # TikZ sources are always generated; Matplotlib is optional.
     if plots:
         plt = _pyplot()

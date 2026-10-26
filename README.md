@@ -107,3 +107,13 @@ Equal group weights recover the global terms. `matched_reader_inheritance.csv` r
 The handoff experiment starts flower channels at A=1, B=0. A fixed mean reader classifies at threshold 0.45. Each channel receives 40 gradient updates at rate 0.2, fitting B to one and A to zero. Acquiring B before retiring A preserves classification throughout; reversing the order temporarily breaks it. Both schedules reach identical full parameter states and zero endpoint Price terms under one-to-one ancestry and binary trait threshold 0.5.
 
 `handoff_trajectories.csv`, `handoff_price.csv`, and `handoff_continuity.tex` record this comparison. Identical full endpoints imply identical future updates under matched deterministic training, despite different histories of availability.
+
+## Learned routing connects dynamics and Price accounting
+
+`routing.py` trains two persistent feature routes and two readers' softmax allocations jointly from reader loss. Each reader has one unit of routing mass. The flower reader reads a mixture directly; broccoli multiplies its mixture by a fixed texture cue. A starts at flower=1, green=0.8; B starts at zero. Equal initial routing shares, 800 updates and learning rate 0.15 are shared across intact, green-removed, green-restored, and frozen-routing conditions. There are no prescribed local feature targets or descendant counts.
+
+The continuous trait is matched flower contrast. With initial masses p and current masses q, selection is sum((q-p)*z_initial), variation is sum(q*(z_current-z_initial)). The same weighted identity is exported between adjacent checkpoints. Equal reader weights reconstruct global accounting. Allocation is not automatically functional importance, and persistent coordinates would give zero selection under unit coordinate weighting.
+
+At step 800, intact flower-reader terms are approximately (+0.217,+0.193), broccoli terms (-0.230,-0.107), and global terms (-0.007,+0.043). Freezing routing gives zero selection and 75% broccoli classification, compared with 100% under learned routing. Removing green lowers final response error in this setup; restoring green restores the intact trajectory. A precursor's advantage therefore depends on task and reader competition, rather than following merely from its presence.
+
+`learned_routing_trajectories.csv`, `learned_routing_price.csv`, and `learned_routing_pressure.csv` record the same runs. Pressure rows include per-reader feature and routing-logit gradients, including unapplied terminal gradients. The ancestry ensemble remains a supplementary declared policy, separate from this gradient-driven allocation experiment.

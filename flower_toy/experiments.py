@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import itertools
 
+from .routing import routing_experiment
 from .development import development_experiment
 
 from .model import (
@@ -335,7 +336,7 @@ def run_suite() -> SuiteResult:
     # Table keys become export filenames; reject collisions when combining experiments.
     result.tables.update(history_tables(baseline.histories))
     for experiment in (
-            development_flow_experiment(baseline), downstream_experiment(baseline),
+            routing_experiment(), development_flow_experiment(baseline), downstream_experiment(baseline),
             acquisition_experiment(baseline), capacity_acquisition_experiment(baseline),
             matched_world_experiment(),
             history_experiment(baseline), ancestry_experiment(baseline),

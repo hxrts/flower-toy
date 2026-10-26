@@ -20,8 +20,12 @@ def format_report(result: SuiteResult) -> str:
         f"  Established/alternative route contributions: {flow['established_final_contribution']:.3f} / "
         f"{flow['alternative_final_contribution']:.3f}.",
         "",
-        "Precursor acquisition",
     ]
+    lines += ["Learned routing and population change"]
+    for condition, row in summary["learned_routing"]["endpoints"].items():
+        lines.append(f"  {condition}: A routing share flower={row['flower_a_share']:.3f}, "
+                     f"broccoli={row['broccoli_a_share']:.3f}; broccoli accuracy={row['broccoli_accuracy']:.3f}.")
+    lines += ["", "Precursor acquisition"]
     for name, row in acquisition.items():
         lines.append(f"  {name}: {row['future_steps']} subsequent updates; "
                      f"{row['precursor_steps']} precursor updates.")

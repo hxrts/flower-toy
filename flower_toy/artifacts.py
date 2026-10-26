@@ -12,6 +12,8 @@ from .results import SuiteResult
 
 # Export only article inputs; standalone reports and plots stay in the output directory.
 BLOG_ASSETS = (
+    "learned_routing.tex",
+    "learned_routing_trajectories.csv", "learned_routing_price.csv", "learned_routing_pressure.csv",
     "acquisition_comparison.tex", "acquisition_comparison.csv",
     "competition_gradients.tex", "price_gradient_values.tex",
     "signed_gradients.csv", "gradient_band_measurements.csv",
