@@ -1,6 +1,6 @@
 # Flower Toy Model
 
-Synthetic experiments for *Learning to Be Clean*, with fixed inputs and initialization and no random sampling. Three binary cues—flower, green, and texture—define eight inputs; broccoli requires green and texture. Architectures, curricula, and ancestry are controlled assumptions.
+Synthetic experiments for [*Learning to Be Clean*](https://weboftru.st/post/learning-to-be-clean/), with fixed inputs and initialization and no random sampling. Three binary cues—flower, green, and texture—define eight inputs; broccoli requires green and texture. Architectures, curricula, and ancestry are controlled assumptions.
 
 ## Run
 
