@@ -49,6 +49,9 @@ def handoff(schedule, phase_steps=TRAINING.handoff_phase_steps, lr=TRAINING.hand
         predictions = np.array([0., score]) >= TRAINING.handoff_threshold
         rows.append(dict(schedule=schedule, step=step, a_flower=float(weights[0]),
                          b_flower=float(weights[1]), flower_score=score,
+                         negative_score=0.,
+                         positive_margin=score-TRAINING.handoff_threshold,
+                         negative_margin=TRAINING.handoff_threshold,
                          flower_accuracy=float(np.mean(predictions == [False, True]))))
         if step < 2 * phase_steps:
             # Reverse the phase order while preserving each channel's update budget.
@@ -58,6 +61,23 @@ def handoff(schedule, phase_steps=TRAINING.handoff_phase_steps, lr=TRAINING.hand
     # One-to-one ancestry removes selection, isolating the history of availability.
     endpoint = attributed_price(np.array([1., 0.]), (weights >= TRAINING.decision_threshold).astype(float), np.eye(2))
     return rows, weights, endpoint
+
+
+def handoff_thresholds(traces):
+    """Evaluate fixed thresholds across every recorded update, without retraining."""
+    rows = []
+    for schedule in ('continuous', 'interrupted'):
+        trace = [r for r in traces if r['schedule'] == schedule]
+        for threshold in (.001, .01, .1, .25, .45, .5):
+            unavailable = [r['step'] for r in trace
+                           if not r['negative_score'] < threshold <= r['flower_score']]
+            rows.append(dict(schedule=schedule, threshold=threshold,
+                             unavailable_updates=len(unavailable),
+                             first_unavailable=unavailable[0] if unavailable else '',
+                             last_unavailable=unavailable[-1] if unavailable else '',
+                             minimum_positive_margin=min(r['flower_score'] for r in trace)-threshold,
+                             minimum_negative_margin=threshold-max(r['negative_score'] for r in trace)))
+    return rows
 
 
 def development_experiment(ancestors: dict[str, np.ndarray]) -> ExperimentResult:
@@ -76,4 +96,4 @@ def development_experiment(ancestors: dict[str, np.ndarray]) -> ExperimentResult
                         'Identical full endpoints imply identical future deterministic updates under matched conditions.')
     return ExperimentResult(summary={"development_comparisons": result}, tables={
         "matched_reader_inheritance": matched, "handoff_trajectories": traces,
-        "handoff_price": accounting})
+        "handoff_price": accounting, "handoff_thresholds": handoff_thresholds(traces)})

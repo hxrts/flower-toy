@@ -117,3 +117,9 @@ The continuous trait is matched flower contrast. With initial masses p and curre
 At step 800, intact flower-reader terms are approximately (+0.217,+0.193), broccoli terms (-0.230,-0.107), and global terms (-0.007,+0.043). Freezing routing gives zero selection and 75% broccoli classification, compared with 100% under learned routing. Removing green lowers final response error in this setup; restoring green restores the intact trajectory. A precursor's advantage therefore depends on task and reader competition, rather than following merely from its presence.
 
 `learned_routing_trajectories.csv`, `learned_routing_price.csv`, and `learned_routing_pressure.csv` record the same runs. Pressure rows include per-reader feature and routing-logit gradients, including unapplied terminal gradients. The ancestry ensemble remains a supplementary declared policy, separate from this gradient-driven allocation experiment.
+
+## Functional dependence and continuity checks
+
+`learned_routing_ablations.csv` measures both readers after zeroing route A or B, holding all trained weights fixed without renormalizing routing shares. In the intact run, removing A lowers flower accuracy to 50% while broccoli stays at 100%; removing B lowers broccoli to 75% while flower stays at 100%. Errors and maximum errors are also exported for all conditions.
+
+The handoff trace includes negative-input scores and positive/negative margins at threshold 0.45. `handoff_thresholds.csv` checks six thresholds from 0.001 to 0.50. The continuous schedule has minimum positive margin 0.05 at the declared threshold, and stays correct at every tested threshold below 0.50. Interrupted recovery fails temporarily at each of those thresholds. At 0.50 the continuous schedule reaches a zero-margin boundary and floating-point rounding triggers a final failed classification.

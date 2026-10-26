@@ -13,6 +13,7 @@ from .settings import TRAINING
 def routing_experiment(steps=TRAINING.routing_steps, lr=TRAINING.routing_lr):
     trajectories, accounting, pressures = [], [], []
     endpoints = {}
+    ablations = []
     for condition in ('intact', 'green_removed', 'green_restored', 'routing_frozen'):
         initial = np.array([[1., .8, 0.], [0., 0., 0.]])
         if condition in ('green_removed', 'green_restored'):
@@ -71,10 +72,19 @@ def routing_experiment(steps=TRAINING.routing_steps, lr=TRAINING.routing_lr):
                 if condition != 'routing_frozen':
                     logits -= lr * d_logits
         endpoints[condition] = row
+        # Zero a route's signal without retraining or renormalizing allocation.
+        for removed, index in (('none', None), ('A', 0), ('B', 1)):
+            ablated_signals = signals.copy()
+            if index is not None:
+                ablated_signals[:, index] = 0.
+            ablated_outputs = (ablated_signals @ shares.T) * factors
+            ablations.append(dict(condition=condition, removed_route=removed,
+                                  **reader_metrics(ablated_outputs)))
     return ExperimentResult(summary={'learned_routing': dict(
         steps=steps, learning_rate=lr, endpoints=endpoints,
         interpretation='Learned allocation shares weight persistent routes. Continuous flower contrast; '
                        'equal reader mass. Initial and adjacent-checkpoint weighted Price identities. '
                        'Precursor removal/rescue and frozen routing are controlled interventions.')},
         tables={'learned_routing_trajectories': trajectories,
-                'learned_routing_price': accounting, 'learned_routing_pressure': pressures})
+                'learned_routing_price': accounting, 'learned_routing_pressure': pressures,
+                'learned_routing_ablations': ablations})
